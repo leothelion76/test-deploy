@@ -1,16 +1,21 @@
 const express = require("express");
 const app = express();
-const morgan = require('morgan');
+const morgan = require("morgan");
 app.use(express.json());
 
-morgan.token("post_data", req => {
+morgan.token("post_data", (req) => {
   return req.method === "POST" ? ` ${JSON.stringify(req.body)}` : "";
 });
 
-app.use(morgan(":method :url :status :res[content-length] - :response-time ms:post_data"));
+app.use(
+  morgan(
+    ":method :url :status :res[content-length] - :response-time ms:post_data"
+  )
+);
 
-const cors = require('cors');
+const cors = require("cors");
 app.use(cors());
+app.use(express.static("dist"));
 
 let persons = [
   {
@@ -66,43 +71,43 @@ app.delete("/api/persons/:id", (req, res) => {
 });
 
 const generateId = () => {
-    let id = 1;
-    while (persons.find(person => person.id === id)) {
-        id = Math.floor(Math.random() * 100);
-    }
-    return id;
-}
+  let id = 1;
+  while (persons.find((person) => person.id === id)) {
+    id = Math.floor(Math.random() * 100);
+  }
+  return id;
+};
 
 const validPerson = (name, number) => {
-    if (!name || !number) {
-        return [false, "content missing"];
-    }
-    if (persons.find(person => person.name === name)) {
-        return [false, "name must be unique"];
-    }
-    return [true, ""];
+  if (!name || !number) {
+    return [false, "content missing"];
+  }
+  if (persons.find((person) => person.name === name)) {
+    return [false, "name must be unique"];
+  }
+  return [true, ""];
 };
 
 app.post("/api/persons", (req, res) => {
-    const {name, number} = req.body;
+  const { name, number } = req.body;
 
-    const [valid, msg] = validPerson(name, number);
+  const [valid, msg] = validPerson(name, number);
 
-    if (!valid) {
-        return res.status(400).json({
-            error: msg
-        });
-    }
+  if (!valid) {
+    return res.status(400).json({
+      error: msg,
+    });
+  }
 
-    const person = {
-        id: generateId(),
-        name: name,
-        number: number,
-    };
+  const person = {
+    id: generateId(),
+    name: name,
+    number: number,
+  };
 
-    persons = persons.concat(person);
+  persons = persons.concat(person);
 
-    res.json(person);
+  res.json(person);
 });
 
 const PORT = process.env.PORT || 3001;
